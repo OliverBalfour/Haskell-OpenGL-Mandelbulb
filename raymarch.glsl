@@ -59,7 +59,8 @@ vec3 computeRayDirection (vec2 fragCoord) {
   // Then cot 1/2 FOV = (-z) / y
   // vec2 xy = fragCoord - uFramebufferSize / 2.0;
   vec2 xy = fragCoord - vec2(640.0, 480.0) / 2.0;
-  float z = -framebufferSize.y * COT_HALF_FOV;
+  // float z = -framebufferSize.y * COT_HALF_FOV;
+  float z = -480.0 * COT_HALF_FOV;
   return normalize(vec3(xy, z));
 }
 
