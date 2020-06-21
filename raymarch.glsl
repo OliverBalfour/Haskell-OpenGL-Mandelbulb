@@ -1,18 +1,11 @@
 
 #define MAX_STEPS 100
 #define EPSILON 0.001
-#define OUT_OF_RANGE 10
+#define OUT_OF_RANGE 10.0
 // 1.0 / tan (radians(45 degrees) / 2.0)
 #define COT_HALF_FOV 2.414214
 
-// uniform vec2 uFramebufferSize;
-
-/**
- * Combine all SDFs in the scene into one signed distance function.
- */
-float netSDF (vec3 point) {
-  return min(sphereSDF(point), cubeSDF(point * 0.9));
-}
+// TODO: uniform vec2 uFramebufferSize;
 
 // SDF for a unit sphere
 float sphereSDF (vec3 point) {
@@ -28,6 +21,13 @@ float cubeSDF (vec3 point) {
 }
 
 /**
+ * Combine all SDFs in the scene into one signed distance function.
+ */
+float netSDF (vec3 point) {
+  return min(sphereSDF(point), cubeSDF(point / 0.7));
+}
+
+/**
  * Use raymarching to determine the distance a ray of light needs to travel
  * to intercept the netSDF surface described by a signed distance function.
  * @param camera vector representing the camera location
@@ -36,7 +36,7 @@ float cubeSDF (vec3 point) {
  *  or OUT_OF_RANGE if no collision
  */
 float raymarchDistanceToSDF (vec3 camera, vec3 unitRay) {
-  float k = 0; // ray scalar factor
+  float k = 0.0; // ray scalar factor
   for (int i = 0; i < MAX_STEPS; i++) {
     float signedDistance = netSDF(camera + k * unitRay);
     if (signedDistance < EPSILON) {
@@ -51,15 +51,14 @@ float raymarchDistanceToSDF (vec3 camera, vec3 unitRay) {
 /**
  * Compute the direction of a ray through the pixel from the viewer's eye
  * @param fragCoord the x, y coords of the pixel/fragment
- * @param framebufferSize the width and height of the viewport
  * @return unit vector in the direction of the fragment
  */
 vec3 computeRayDirection (vec2 fragCoord) {
   // The angle between the viewer's eye and the middle of the screen and fragment is FOV / 2.0
   // Then cot 1/2 FOV = (-z) / y
-  // vec2 xy = fragCoord - uFramebufferSize / 2.0;
+  // TODO: vec2 xy = fragCoord - uFramebufferSize / 2.0;
   vec2 xy = fragCoord - vec2(640.0, 480.0) / 2.0;
-  // float z = -framebufferSize.y * COT_HALF_FOV;
+  // TODO: float z = -framebufferSize.y * COT_HALF_FOV;
   float z = -480.0 * COT_HALF_FOV;
   return normalize(vec3(xy, z));
 }
