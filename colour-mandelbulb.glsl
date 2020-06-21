@@ -1,12 +1,11 @@
 
 #define MAX_STEPS 100
 #define EPSILON 0.001
-#define OUT_OF_RANGE 10.0
+#define OUT_OF_RANGE 1000.0
 // 1.0 / tan (radians(45 degrees) / 2.0)
 #define COT_HALF_FOV 2.414214
-#define ITERATIONS 4
 
-// TODO: uniform vec2 uFramebufferSize;
+// uniform vec2 uFramebufferSize;
 
 // SDF for a unit sphere
 float sphereSDF (vec3 point) {
@@ -21,26 +20,10 @@ float cubeSDF (vec3 point) {
   return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
 }
 
-// float mandelbulbSDF (vec3 c) {
-//   vec3 w = c;
-//   float m = dot(w,w);
-//   for (int i = 0; i < ITERATIONS; i++) {
-//     // extract polar coordinates
-//     float wr = sqrt(dot(w,w));
-//     float wo = acos(w.y/wr);
-//     float wi = atan(w.x,w.z);
-//     // scale and rotate the point
-//     wr = pow(wr, 8.0);
-//     wo = wo * 8.0;
-//     wi = wi * 8.0;
-//     // convert back to cartesian coordinates
-//     w.x = wr * sin(wo)*sin(wi);
-//     w.y = wr * cos(wo);
-//     w.z = wr * sin(wo)*cos(wi);
-//     if (dot(w,w) > 256.0) break;
-//   }
-// }
-float mandelbulbSDF (vec3 p) {
+/**
+ * Combine all SDFs in the scene into one signed distance function.
+ */
+float netSDF (in vec3 p, out vec4 colour) {
   vec3 w = p;
   float m = dot(w,w);
   vec4 trap = vec4(abs(w),m);
@@ -56,16 +39,8 @@ float mandelbulbSDF (vec3 p) {
     m = dot(w,w);
     if (m > 256.0) break;
   }
-
+  colour = vec4(m,trap.yzw);
   return 0.25*log(m)*sqrt(m)/dz;
-}
-
-
-/**
- * Combine all SDFs in the scene into one signed distance function.
- */
-float netSDF (vec3 point) {
-  return min(sphereSDF(point), cubeSDF(point / 0.7));
 }
 
 /**
@@ -76,10 +51,10 @@ float netSDF (vec3 point) {
  * @return distance to the nearest point in the SDF in the ray direction
  *  or OUT_OF_RANGE if no collision
  */
-float raymarchDistanceToSDF (vec3 camera, vec3 unitRay) {
+float raymarchDistanceToSDF (in vec3 camera, in vec3 unitRay, out vec4 col) {
   float k = 0.0; // ray scalar factor
   for (int i = 0; i < MAX_STEPS; i++) {
-    float signedDistance = netSDF(camera + k * unitRay);
+    float signedDistance = netSDF(camera + k * unitRay, col);
     if (signedDistance < EPSILON) {
       return k;
     }
@@ -92,15 +67,16 @@ float raymarchDistanceToSDF (vec3 camera, vec3 unitRay) {
 /**
  * Compute the direction of a ray through the pixel from the viewer's eye
  * @param fragCoord the x, y coords of the pixel/fragment
+ * @param framebufferSize the width and height of the viewport
  * @return unit vector in the direction of the fragment
  */
 vec3 computeRayDirection (vec2 fragCoord) {
   // The angle between the viewer's eye and the middle of the screen and fragment is FOV / 2.0
   // Then cot 1/2 FOV = (-z) / y
-  // TODO: vec2 xy = fragCoord - uFramebufferSize / 2.0;
-  vec2 xy = fragCoord - vec2(640.0, 480.0) / 2.0;
-  // TODO: float z = -framebufferSize.y * COT_HALF_FOV;
-  float z = -480.0 * COT_HALF_FOV;
+  // vec2 xy = fragCoord - uFramebufferSize / 2.0;
+  vec2 xy = fragCoord - vec2(800.0, 450.0) / 2.0;
+  // float z = -framebufferSize.y * COT_HALF_FOV;
+  float z = -450.0 * COT_HALF_FOV;
   return normalize(vec3(xy, z));
 }
 
@@ -126,15 +102,17 @@ mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
 
 
 void mainImage (out vec4 fragColor, in vec2 fragCoord) {
-  vec3 camera = vec3(5.0,5.0,6.0);
+  float time = iTime*0.1;
+  vec3 camera = vec3(3.0*sqrt(2.0)*sin(time),3.0,3.0*sqrt(2.0)*cos(time));
   vec3 unitRay = computeRayDirection(fragCoord);
   mat4 viewToWorld = viewMatrix(camera, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
   vec3 worldRay = (viewToWorld * vec4(unitRay, 0.0)).xyz;
-  float signedDistance = raymarchDistanceToSDF(camera, worldRay);
+  vec4 col;
+  float signedDistance = raymarchDistanceToSDF(camera, worldRay, col);
   if (signedDistance > OUT_OF_RANGE - EPSILON) {
     fragColor = vec4(0.0, 0.0, 0.0, 0.0);
     return;
   }
   vec3 interceptingPoint = camera + signedDistance * worldRay;
-  fragColor = vec4(1.0, 1.0, 0.0, 1.0);
+  fragColor = col;//vec4(1.0, 1.0, 0.0, 1.0);
 }
