@@ -9,6 +9,13 @@ import qualified Data.Vector.Storable as V
 import qualified Graphics.Rendering.OpenGL as GL
 import Graphics.Rendering.OpenGL (($=))
 import qualified Graphics.UI.GLFW as GLFW
+import Graphics.GL.Core31 (glUniform1f)
+
+import Unsafe.Coerce(unsafeCoerce)
+import GHC.Float(double2Float)
+maybeDoubleToGF :: Maybe Double -> GL.GLfloat
+maybeDoubleToGF (Just d) = unsafeCoerce $ double2Float d
+maybeDoubleToGF _ = 0.0
 
 keyCallback :: GLFW.KeyCallback
 keyCallback window key _ action _ =
@@ -90,12 +97,18 @@ draw program window = do
   GL.viewport $= (GL.Position 0 0, GL.Size (fromIntegral width) (fromIntegral height))
   GL.clear [GL.ColorBuffer]
   GL.currentProgram $= Just program
-  -- add vertices of a fullscreen quad to render
-  let vertices = (V.fromList [-1.0,-1.0,0, 1.0,-1.0,0, -1.0,1.0,0]) :: V.Vector Float
+  -- add vertices of a fullscreen covering triangle to render
+  let vertices = (V.fromList [-1.0,-1.0,0, 3.0,-1.0,0, -1.0,3.0,0]) :: V.Vector Float
   GL.vertexAttribArray (GL.AttribLocation 0) $= GL.Enabled
   V.unsafeWith vertices $ \ptr -> do
       GL.vertexAttribPointer (GL.AttribLocation 0) $=
           (GL.ToFloat, GL.VertexArrayDescriptor 3 GL.Float 0 ptr)
+  -- add time uniform
+  t <- GLFW.getTime
+  GL.UniformLocation tLoc <- GL.get $ GL.uniformLocation program "time"
+  glUniform1f tLoc (maybeDoubleToGF t)
+  -- V.unsafeWith (V.fromList [t]) $ \ptr -> do
+  --     glUniformMatrix3fv tLoc 1 1 ptr
   GL.drawArrays GL.Triangles 0 3
   GL.vertexAttribArray (GL.AttribLocation 0) $= GL.Disabled
 
