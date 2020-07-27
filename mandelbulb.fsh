@@ -1,14 +1,12 @@
 
+uniform float time;
+uniform vec2 size;
+
 #define MAX_STEPS 100
 #define EPSILON 0.001
 #define OUT_OF_RANGE 1000.0
-// 1.0 / tan (radians(45 degrees) / 2.0)
-#define COT_HALF_FOV 2.414214
-uniform float time;
-
-// uniform vec2 uFramebufferSize;
-uniform float aa;
-uniform float ab;
+// 1.0 / tan (radians(60 degrees) / 2.0)
+#define COT_HALF_FOV 1.73205
 
 // SDF for a unit sphere
 float sphereSDF (vec3 point) {
@@ -76,11 +74,8 @@ float raymarchDistanceToSDF (in vec3 camera, in vec3 unitRay, out vec4 col) {
 vec3 computeRayDirection (vec2 fragCoord) {
   // The angle between the viewer's eye and the middle of the screen and fragment is FOV / 2.0
   // Then cot 1/2 FOV = (-z) / y
-  vec2 uFramebufferSize = vec2(aa,ab);
-  vec2 xy = fragCoord - uFramebufferSize / 2.0;
-  // vec2 xy = fragCoord - vec2(640.0, 480.0) / 2.0;
-  // float z = -framebufferSize.y * COT_HALF_FOV;
-  float z = -450.0 * COT_HALF_FOV;
+  vec2 xy = fragCoord - size / 2.0;
+  float z = -size.y * COT_HALF_FOV;
   return normalize(vec3(xy, z));
 }
 
@@ -118,5 +113,5 @@ void main () {
     return;
   }
   vec3 interceptingPoint = camera + signedDistance * worldRay;
-  gl_FragColor = col;//vec4(1.0, 1.0, 0.0, 1.0);
+  gl_FragColor = col;
 }

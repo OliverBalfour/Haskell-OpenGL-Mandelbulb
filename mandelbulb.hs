@@ -109,11 +109,8 @@ draw program window = do
   GL.UniformLocation tLoc <- GL.get $ GL.uniformLocation program "time"
   glUniform1f tLoc (maybeDoubleToGF t)
   -- add resolution uniform
-  GL.UniformLocation bLoc <- GL.get $ GL.uniformLocation program "aa"
-  glUniform1f bLoc (intToGF width)
-  GL.UniformLocation cLoc <- GL.get $ GL.uniformLocation program "ab"
-  glUniform1f cLoc (intToGF height)
-  -- glUniform2f bLoc (intToGF width) (intToGF height)
+  GL.UniformLocation bLoc <- GL.get $ GL.uniformLocation program "size"
+  glUniform2f bLoc (intToGF width) (intToGF height)
   -- draw
   GL.drawArrays GL.Triangles 0 3
   GL.vertexAttribArray (GL.AttribLocation 0) $= GL.Disabled
