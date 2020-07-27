@@ -102,7 +102,7 @@ mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
 
 
 void mainImage (out vec4 fragColor, in vec2 fragCoord) {
-  float time = iTime*0.1;
+  float time = 0.0f;//iTime*0.1;
   vec3 camera = vec3(3.0*sqrt(2.0)*sin(time),3.0,3.0*sqrt(2.0)*cos(time));
   vec3 unitRay = computeRayDirection(fragCoord);
   mat4 viewToWorld = viewMatrix(camera, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
