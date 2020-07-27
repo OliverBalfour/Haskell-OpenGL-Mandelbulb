@@ -106,10 +106,10 @@ draw program window = do
           (GL.ToFloat, GL.VertexArrayDescriptor 3 GL.Float 0 ptr)
   -- add time uniform
   t <- GLFW.getTime
-  GL.UniformLocation tLoc <- GL.get $ GL.uniformLocation program "time"
+  GL.UniformLocation tLoc <- GL.get $ GL.uniformLocation program "uTime"
   glUniform1f tLoc (maybeDoubleToGF t)
   -- add resolution uniform
-  GL.UniformLocation bLoc <- GL.get $ GL.uniformLocation program "size"
+  GL.UniformLocation bLoc <- GL.get $ GL.uniformLocation program "uSize"
   glUniform2f bLoc (intToGF width) (intToGF height)
   -- draw
   GL.drawArrays GL.Triangles 0 3
