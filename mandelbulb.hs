@@ -12,11 +12,11 @@ import qualified Graphics.UI.GLFW as GLFW
 import Graphics.GL.Core31 (glUniform1f, glUniform2f)
 
 import Unsafe.Coerce(unsafeCoerce)
-import GHC.Float(double2Float)
+import GHC.Float (double2Float, int2Float)
 maybeDoubleToGF :: Maybe Double -> GL.GLfloat
 maybeDoubleToGF (Just d) = unsafeCoerce $ double2Float d
 maybeDoubleToGF _ = 0.0
-intToGF = unsafeCoerce :: Int -> GL.GLfloat
+intToGF = unsafeCoerce . int2Float :: Int -> GL.GLfloat
 
 keyCallback :: GLFW.KeyCallback
 keyCallback window key _ action _ =
