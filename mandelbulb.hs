@@ -9,7 +9,7 @@ import qualified Data.Vector.Storable as V
 import qualified Graphics.Rendering.OpenGL as GL
 import Graphics.Rendering.OpenGL (($=))
 import qualified Graphics.UI.GLFW as GLFW
-import Graphics.GL.Core31 (glUniform1f, glUniform2f)
+import Graphics.GL.Core31 (glUniform1f, glUniform2f, glEnable)
 
 import Unsafe.Coerce(unsafeCoerce)
 import GHC.Float (double2Float, int2Float)
@@ -125,5 +125,6 @@ main :: IO ()
 main = do
   window <- createWindow "Haskell OpenGL Mandelbulb" 640 480
   program <- shaderModule "mandelbulb.vsh" "mandelbulb.fsh"
+  -- glEnable(0x809D) -- enable multisampling extension
   mainLoop (draw program window) window
   cleanup window
