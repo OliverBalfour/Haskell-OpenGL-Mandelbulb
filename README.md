@@ -3,5 +3,5 @@
 ## How to run
 ```
 stack install OpenGL GLUT GLFW-b vector
-stack runhaskell abc.hs
+stack runhaskell mandelbulb.hs
 ```

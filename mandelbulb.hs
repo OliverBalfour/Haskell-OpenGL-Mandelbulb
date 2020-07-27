@@ -9,13 +9,14 @@ import qualified Data.Vector.Storable as V
 import qualified Graphics.Rendering.OpenGL as GL
 import Graphics.Rendering.OpenGL (($=))
 import qualified Graphics.UI.GLFW as GLFW
-import Graphics.GL.Core31 (glUniform1f)
+import Graphics.GL.Core31 (glUniform1f, glUniform2f)
 
 import Unsafe.Coerce(unsafeCoerce)
 import GHC.Float(double2Float)
 maybeDoubleToGF :: Maybe Double -> GL.GLfloat
 maybeDoubleToGF (Just d) = unsafeCoerce $ double2Float d
 maybeDoubleToGF _ = 0.0
+intToGF = unsafeCoerce :: Int -> GL.GLfloat
 
 keyCallback :: GLFW.KeyCallback
 keyCallback window key _ action _ =
@@ -107,8 +108,13 @@ draw program window = do
   t <- GLFW.getTime
   GL.UniformLocation tLoc <- GL.get $ GL.uniformLocation program "time"
   glUniform1f tLoc (maybeDoubleToGF t)
-  -- V.unsafeWith (V.fromList [t]) $ \ptr -> do
-  --     glUniformMatrix3fv tLoc 1 1 ptr
+  -- add resolution uniform
+  GL.UniformLocation bLoc <- GL.get $ GL.uniformLocation program "aa"
+  glUniform1f bLoc (intToGF width)
+  GL.UniformLocation cLoc <- GL.get $ GL.uniformLocation program "ab"
+  glUniform1f cLoc (intToGF height)
+  -- glUniform2f bLoc (intToGF width) (intToGF height)
+  -- draw
   GL.drawArrays GL.Triangles 0 3
   GL.vertexAttribArray (GL.AttribLocation 0) $= GL.Disabled
 
@@ -121,6 +127,6 @@ cleanup window = do
 main :: IO ()
 main = do
   window <- createWindow "Haskell OpenGL Mandelbulb" 640 480
-  program <- shaderModule "id.vsh" "id.fsh"
+  program <- shaderModule "mandelbulb.vsh" "mandelbulb.fsh"
   mainLoop (draw program window) window
   cleanup window
